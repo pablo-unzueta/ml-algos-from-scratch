@@ -141,7 +141,7 @@ def main():
     tokenizer = ShakespeareTokenizer(data=data)
     dataset = ShakespeareDataset(data=data, tokenizer=tokenizer, block_size=8)
     train_loader, val_loader = get_shakespeare_dataloaders(
-        dataset=dataset, tokenizer=tokenizer, batch_size=32
+        dataset=dataset, tokenizer=tokenizer, batch_size=2048
     )
 
     # config = Config(
