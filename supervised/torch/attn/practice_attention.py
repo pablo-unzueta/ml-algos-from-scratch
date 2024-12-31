@@ -181,7 +181,7 @@ def train(
 ):
     model.train()
     for epoch in range(num_epochs):
-        for data, targets in tqdm(train_loader):
+        for i, (data, targets) in enumerate(tqdm(train_loader)):
             data, targets = data.to(device), targets.to(device)
 
             logits = model(data)
@@ -192,6 +192,9 @@ def train(
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+            if (i + 1) % 500 == 0:
+                print(f"Loss at minibatch: {i+1}: {loss.item()=:.4f}")
 
 
 def main():
