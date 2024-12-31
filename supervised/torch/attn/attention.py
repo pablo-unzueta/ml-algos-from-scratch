@@ -141,7 +141,7 @@ def train(
 ):
     model.train()
     best_val_loss = 0
-    scaler = torch.cuda.amp.GradScaler() if device == "cuda" else None
+    scaler = torch.amp.GradScaler(device) if device == "cuda" else None
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
