@@ -137,28 +137,33 @@ def train(
     scheduler: optim.lr_scheduler,
     device: str,
     tokenizer: ShakespeareTokenizer,
+    gradient_accumulation_steps: int = 8,
 ):
     model.train()
     best_val_loss = 0
     for epoch in range(num_epochs):
+        optimizer.zero_grad()
         for i, (data, targets) in enumerate(tqdm(train_dataloader)):
             data = data.to(device)
             targets = targets.to(device)
-            logits = model(data)
 
             logits = model(data)
             loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
-
-            optimizer.zero_grad()
+            loss = loss / gradient_accumulation_steps
             loss.backward()
-            optimizer.step()
+
+            if (i + 1) % gradient_accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
 
             if i % 250 == 0:
-                print(f"Batch {i}: Loss: {loss.item():.4f}")
+                print(
+                    f"Batch {i}: Loss: {loss.item() * gradient_accumulation_steps:.4f}"
+                )
                 print("\n")
                 model.eval()
                 ids = model.generate(
-                    torch.tensor([tokenizer.encode("ROMEO:")], device=device),
+                    torch.tensor([tokenizer.encode("\n")], device=device),
                     max_new_tokens=100,
                     temp=0.8,
                 )
