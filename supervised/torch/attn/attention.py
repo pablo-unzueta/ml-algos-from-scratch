@@ -173,7 +173,7 @@ def train(
                     optimizer.step()
                 optimizer.zero_grad()
 
-            if i % 250 == 0:
+            if (i + 1) % 750 == 0:
                 print(
                     f"Batch {i}: Loss: {loss.item() * gradient_accumulation_steps:.4f}"
                 )
