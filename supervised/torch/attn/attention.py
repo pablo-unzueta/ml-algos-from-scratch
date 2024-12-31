@@ -173,9 +173,9 @@ def train(
                     optimizer.step()
                 optimizer.zero_grad()
 
-            if (i + 1) % 750 == 0:
+            if (i + 1) % 2000 == 0:
                 print(
-                    f"Batch {i}: Loss: {loss.item() * gradient_accumulation_steps:.4f}"
+                    f"Batch {i + 1}: Loss: {loss.item() * gradient_accumulation_steps:.4f}"
                 )
                 print("\n")
                 ids = model.generate(
