@@ -27,10 +27,14 @@ class ShakespeareTokenizer:
     def encode(self, s: str) -> list:
         return [self.stoi[c] for c in s]
 
-    def decode(self, l: list) -> str:
-        if torch.is_tensor(l):
-            l = l.tolist()
-        return "".join(self.itos[i] for i in l)
+    def decode(self, tokens: list | torch.Tensor) -> str:
+        if torch.is_tensor(tokens):
+            tokens = tokens.tolist()
+
+        if isinstance(tokens[0], (list, tuple)):
+            tokens = tokens[0]
+
+        return "".join(self.itos[i] for i in tokens)
 
 
 class ShakespeareDataset(Dataset):
