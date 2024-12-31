@@ -141,19 +141,32 @@ def train(
 ):
     model.train()
     best_val_loss = 0
+    scaler = torch.cuda.amp.GradScaler() if device == "cuda" else None
+    
     for epoch in range(num_epochs):
         optimizer.zero_grad()
         for i, (data, targets) in enumerate(tqdm(train_dataloader)):
             data = data.to(device)
             targets = targets.to(device)
 
-            logits = model(data)
-            loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
-            loss = loss / gradient_accumulation_steps
-            loss.backward()
+            if device == "cuda":
+                with torch.cuda.amp.autocast():
+                    logits = model(data)
+                    loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
+                    loss = loss / gradient_accumulation_steps
+                scaler.scale(loss).backward()
+            else:
+                logits = model(data)
+                loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
+                loss = loss / gradient_accumulation_steps
+                loss.backward()
 
             if (i + 1) % gradient_accumulation_steps == 0:
-                optimizer.step()
+                if device == "cuda":
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    optimizer.step()
                 optimizer.zero_grad()
 
             if i % 250 == 0:
@@ -161,7 +174,6 @@ def train(
                     f"Batch {i}: Loss: {loss.item() * gradient_accumulation_steps:.4f}"
                 )
                 print("\n")
-                model.eval()
                 ids = model.generate(
                     torch.tensor([tokenizer.encode("\n")], device=device),
                     max_new_tokens=100,
@@ -169,15 +181,15 @@ def train(
                 )
                 print(f"{tokenizer.decode(ids.tolist())}\n")
                 val_loss = evaluate(model, val_dataloader, device)
-                print(f"{val_loss=}")
+                print(f"{val_loss=}\n")
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                 scheduler.step(val_loss)
-                model.train()
 
 
 @torch.no_grad()
 def evaluate(model, loader, device) -> float:
+    model.eval()
     val_loss = 0
     for data, targets in tqdm(loader):
         data, targets = data.to(device), targets.to(device)
@@ -186,6 +198,7 @@ def evaluate(model, loader, device) -> float:
         loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
         val_loss += loss.item()
 
+    model.train()
     return val_loss / len(loader)
 
 
