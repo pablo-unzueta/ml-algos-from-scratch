@@ -150,7 +150,7 @@ def train(
             targets = targets.to(device)
 
             if device == "cuda":
-                with torch.cuda.amp.autocast(device):
+                with torch.amp.autocast(device):
                     logits = model(data)
                     loss = F.cross_entropy(
                         logits.view(-1, logits.shape[-1]), targets.view(-1)
