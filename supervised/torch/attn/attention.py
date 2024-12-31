@@ -238,8 +238,8 @@ def main():
 
     model = GPT(config)
     model = model.to(device)
-    # optimizer = optim.Adam(model.parameters(), lr=config.lr)
-    optimizer = optim.AdamW(model.parameters(), lr=config.lr)
+    optimizer = optim.Adam(model.parameters(), lr=config.lr)
+    # optimizer = optim.AdamW(model.parameters(), lr=config.lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer=optimizer,
         mode="min",
