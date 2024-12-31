@@ -174,7 +174,7 @@ def evaluate(model, loader, device) -> float:
         data, targets = data.to(device), targets.to(device)
 
         logits = model(data)
-        loss = F.cross_entropy(logits.view(-1, logits.shape[-1], targets.view(-1)))
+        loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
         val_loss += loss.item()
 
     return val_loss / len(loader)
