@@ -152,7 +152,7 @@ def train(
             loss.backward()
             optimizer.step()
 
-            if i % 100 == 0:
+            if i % 250 == 0:
                 print(f"Batch {i}: Loss: {loss.item():.4f}")
                 print("\n")
                 model.eval()
@@ -162,7 +162,22 @@ def train(
                     temp=0.8,
                 )
                 print(f"{tokenizer.decode(ids.tolist())}\n")
+                val_loss = evaluate(model, val_dataloader, device)
+                print(f"{val_loss=}")
                 model.train()
+
+
+@torch.no_grad()
+def evaluate(model, loader, device) -> float:
+    val_loss = 0
+    for data, targets in tqdm(loader):
+        data, targets = data.to(device), targets.to(device)
+
+        logits = model(data)
+        loss = F.cross_entropy(logits.view(-1, logits.shape[-1], targets.view(-1)))
+        val_loss += loss.item()
+
+    return val_loss / len(loader)
 
 
 def main():
