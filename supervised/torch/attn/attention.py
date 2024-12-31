@@ -78,7 +78,7 @@ class Block(nn.Module):
 class GPT(nn.Module):
     def __init__(self, config: Config):
         super().__init__()
-
+        self.config = config
         self.transformer = nn.ModuleDict(
             dict(
                 token_embedding=nn.Embedding(config.vocab_size, config.n_embd),
@@ -93,7 +93,7 @@ class GPT(nn.Module):
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.transformer.token_embedding.weight = self.lm_head.weight
 
-        # init wegiths?
+        # init weights?
 
     def forward(self, idx: torch.Tensor):
         device = idx.device
@@ -110,6 +110,23 @@ class GPT(nn.Module):
         logits = self.lm_head(x)  # convert back to vocab size
         return logits
 
+    @torch.no_grad()
+    def generate(self, idx, max_new_tokens, temp=1.0, top_k=None):
+        for _ in range(max_new_tokens):
+            idx_cond = (
+                idx
+                if idx.shape[1] <= self.config.block_size
+                else idx[:, -self.config.block_size :]
+            )
+            logits = self(idx_cond)
+            logits = logits[:, -1, :] / temp
+
+            probs = F.softmax(logits, dim=-1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+            idx = torch.cat((idx, idx_next), dim=1)
+
+        return idx
+
 
 def train(
     model: nn.Module,
@@ -119,20 +136,29 @@ def train(
     optimizer: optim.Optimizer,
     scheduler: optim.lr_scheduler,
     device: str,
+    tokenizer: ShakespeareTokenizer,
 ):
     model.train()
     for epoch in range(num_epochs):
-        for data, targets in tqdm(train_dataloader):
+        for i, (data, targets) in enumerate(tqdm(train_dataloader)):
             data = data.to(device)
             targets = targets.to(device)
             logits = model(data)
 
             logits = model(data)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+            if i % 25 == 0:
+                print(f"Batch {i}: Loss: {loss.item()}")
+                print("\n")
+                model.eval()
+                ids = model.generate(torch.tensor([[25]]), max_new_tokens=100)
+                print(f"{tokenizer.decode(ids.tolist())}\n")
+                model.train()
 
 
 def main():
@@ -141,7 +167,7 @@ def main():
     tokenizer = ShakespeareTokenizer(data=data)
     dataset = ShakespeareDataset(data=data, tokenizer=tokenizer, block_size=8)
     train_loader, val_loader = get_shakespeare_dataloaders(
-        dataset=dataset, tokenizer=tokenizer, batch_size=2048
+        dataset=dataset, tokenizer=tokenizer, batch_size=32
     )
 
     # config = Config(
@@ -179,6 +205,7 @@ def main():
         optimizer=optimizer,
         scheduler=scheduler,
         device=device,
+        tokenizer=tokenizer,
     )
 
 
