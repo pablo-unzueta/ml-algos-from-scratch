@@ -214,6 +214,7 @@ def main():
         dataset, tokenizer, batch_size=64
     )
     model = GPT(config)
+    model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
     train(
         model=model,
