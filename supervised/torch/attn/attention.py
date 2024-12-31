@@ -174,6 +174,8 @@ def train(
                 optimizer.zero_grad()
 
             if (i + 1) % 2000 == 0:
+                print("Saving checkpoint...")
+                torch.save(model.state_dict(), "checkpoint.pth")
                 print(
                     f"Batch {i + 1}: Loss: {loss.item() * gradient_accumulation_steps:.4f}"
                 )
@@ -188,6 +190,8 @@ def train(
                 print(f"{val_loss=}\n")
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
+                    print("Saving best model...")
+                    torch.save(model.state_dict(), "best_model.pth")
                 scheduler.step(val_loss)
 
 

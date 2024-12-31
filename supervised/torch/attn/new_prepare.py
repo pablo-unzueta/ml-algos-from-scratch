@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader, random_split, RandomSampler
 from pathlib import Path
 import requests
 from typing import Tuple
@@ -78,10 +78,11 @@ def get_shakespeare_dataloaders(
     # split train/val
     train_dataset, val_dataset = random_split(dataset, lengths=[0.9, 0.1])
 
+    sampler = RandomSampler(train_dataset, replacement=True)
     train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        sampler=sampler,
         pin_memory=True,
     )
 
