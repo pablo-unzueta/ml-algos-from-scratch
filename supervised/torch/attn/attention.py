@@ -156,7 +156,9 @@ def train(
                 print(f"Batch {i}: Loss: {loss.item()}")
                 print("\n")
                 model.eval()
-                ids = model.generate(torch.tensor([[25]]), max_new_tokens=100)
+                ids = model.generate(
+                    torch.tensor([[25]], device=device), max_new_tokens=100
+                )
                 print(f"{tokenizer.decode(ids.tolist())}\n")
                 model.train()
 
