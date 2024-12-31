@@ -139,6 +139,7 @@ def train(
     tokenizer: ShakespeareTokenizer,
 ):
     model.train()
+    best_val_loss = 0
     for epoch in range(num_epochs):
         for i, (data, targets) in enumerate(tqdm(train_dataloader)):
             data = data.to(device)
@@ -164,6 +165,9 @@ def train(
                 print(f"{tokenizer.decode(ids.tolist())}\n")
                 val_loss = evaluate(model, val_dataloader, device)
                 print(f"{val_loss=}")
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                scheduler.step(val_loss)
                 model.train()
 
 
