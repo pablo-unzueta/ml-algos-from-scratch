@@ -142,7 +142,7 @@ def train(
     model.train()
     best_val_loss = 0
     scaler = torch.amp.GradScaler(device) if device == "cuda" else None
-    
+
     for epoch in range(num_epochs):
         optimizer.zero_grad()
         for i, (data, targets) in enumerate(tqdm(train_dataloader)):
@@ -150,14 +150,18 @@ def train(
             targets = targets.to(device)
 
             if device == "cuda":
-                with torch.cuda.amp.autocast():
+                with torch.cuda.amp.autocast(device):
                     logits = model(data)
-                    loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
+                    loss = F.cross_entropy(
+                        logits.view(-1, logits.shape[-1]), targets.view(-1)
+                    )
                     loss = loss / gradient_accumulation_steps
                 scaler.scale(loss).backward()
             else:
                 logits = model(data)
-                loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))
+                loss = F.cross_entropy(
+                    logits.view(-1, logits.shape[-1]), targets.view(-1)
+                )
                 loss = loss / gradient_accumulation_steps
                 loss.backward()
 
