@@ -157,8 +157,9 @@ def train(
                 print("\n")
                 model.eval()
                 ids = model.generate(
-                    torch.tensor([[58, 46]], device=device, temp=0.8),
+                    torch.tensor([[58, 46]], device=device),
                     max_new_tokens=100,
+                    temp=0.8,
                 )
                 print(f"{tokenizer.decode(ids.tolist())}\n")
                 model.train()
