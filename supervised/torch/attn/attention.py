@@ -152,12 +152,12 @@ def train(
             loss.backward()
             optimizer.step()
 
-            if i % 25 == 0:
+            if i % 100 == 0:
                 print(f"Batch {i}: Loss: {loss.item()}")
                 print("\n")
                 model.eval()
                 ids = model.generate(
-                    torch.tensor([[25]], device=device), max_new_tokens=100
+                    torch.tensor([[58, 46]], device=device), max_new_tokens=100
                 )
                 print(f"{tokenizer.decode(ids.tolist())}\n")
                 model.train()
