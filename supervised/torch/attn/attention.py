@@ -153,11 +153,11 @@ def train(
             optimizer.step()
 
             if i % 100 == 0:
-                print(f"Batch {i}: Loss: {loss.item()}")
+                print(f"Batch {i}: Loss: {loss.item():.4f}")
                 print("\n")
                 model.eval()
                 ids = model.generate(
-                    torch.tensor([tokenizer.encode("The king said")], device=device),
+                    torch.tensor([tokenizer.encode("ROMEO:")], device=device),
                     max_new_tokens=100,
                     temp=0.8,
                 )
