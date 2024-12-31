@@ -169,9 +169,9 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     data = get_shakespeare_data()
     tokenizer = ShakespeareTokenizer(data=data)
-    dataset = ShakespeareDataset(data=data, tokenizer=tokenizer, block_size=8)
+    dataset = ShakespeareDataset(data=data, tokenizer=tokenizer, block_size=256)
     train_loader, val_loader = get_shakespeare_dataloaders(
-        dataset=dataset, tokenizer=tokenizer, batch_size=1024
+        dataset=dataset, tokenizer=tokenizer, batch_size=64
     )
 
     # config = Config(
@@ -185,7 +185,7 @@ def main():
         n_embd=384,
         n_head=6,
         n_layer=6,
-        block_size=8,
+        block_size=256,
         vocab_size=65,
         dropout=0.2,
         lr=0.001,
@@ -205,7 +205,7 @@ def main():
         model=model,
         train_dataloader=train_loader,
         val_dataloader=val_loader,
-        num_epochs=2,
+        num_epochs=10,
         optimizer=optimizer,
         scheduler=scheduler,
         device=device,
