@@ -157,7 +157,7 @@ def train(
                 print("\n")
                 model.eval()
                 ids = model.generate(
-                    torch.tensor([[58, 46]], device=device),
+                    torch.tensor([tokenizer.encode("The king said")], device=device),
                     max_new_tokens=100,
                     temp=0.8,
                 )
