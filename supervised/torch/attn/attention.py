@@ -63,8 +63,15 @@ class Block(nn.Module):
         # pre-norm architecture
         x_norm = self.ln1(x)
         # mha with residual
+        seq_len = x.size(1)
+        causal_mask = torch.triu(torch.ones(seq_len, seq_len) * float("-inf"), diagonal=1)
+        causal_mask = causal_mask.to(x.device)
         attn_out, attn_weights = self.attn(
-            x_norm, x_norm, x_norm
+            x_norm,
+            x_norm,
+            x_norm,
+            attn_mask=causal_mask,
+            is_causal=True,
         )  # Causal Self Attention when using the same 3 values
         # attn_out [batch_size, seq_length, embed_dim]
         # attn_weights [batch_size, num_heads, seq_length]
